@@ -14,10 +14,10 @@ client = language.LanguageServiceClient()
 
 data = []
 
-def generate_pages():
+def generate_pages(board):
     pages = []
 
-    page = url + '/a/'
+    page = url + '/' + board + '/'
     pages.append(page)
 
     for i in range(2, 10):
@@ -46,7 +46,10 @@ def scrape_text(post):
 
 def main():
     global overall_sentiment, count
-    pages = generate_pages()
+
+    board = input("Input board acronym: ")
+
+    pages = generate_pages(board)
 
     print("generated page")
 
@@ -69,6 +72,7 @@ def main():
     data.clear()
 
     d = dict()
+    d['board'] = board
     d['date'] = datetime.datetime.now()
     d['overall_sentiment'] = overall_sentiment
     data.append(d)
