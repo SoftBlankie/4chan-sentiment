@@ -7,17 +7,24 @@ from google.cloud import language
 from google.cloud.language import enums
 from google.cloud.language import types
 
-url = 'http://boards.4channel.org'
+url = 'http://www.4chan.org/'
 headers = {'User-Agent': 'Mozilla/5.0'}
 
 client = language.LanguageServiceClient()
 
 data = []
 
+def generate_boards():
+    r = requests.get(url,headers=headers)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    boards = soup.select('.boxcontent .column a')
+
+    return boards
+
 def generate_pages(board):
     pages = []
 
-    page = url + '/' + board + '/'
+    page = board['href']
     pages.append(page)
 
     for i in range(2, 10):
@@ -47,37 +54,40 @@ def scrape_text(post):
 def main():
     global overall_sentiment, count
 
-    board = input("Input board acronym: ")
+    #board = input("Input board acronym: ")
 
-    pages = generate_pages(board)
+    boards = generate_boards()
 
-    print("generated page")
+    for board in boards:
+        pages = generate_pages(board)
 
-    for page in pages:
-        r = requests.get(page,headers=headers)
-        soup = BeautifulSoup(r.content, 'html.parser')
+        print("generated page")
 
-        posts = soup.select('.board .thread .postContainer')
+        for page in pages:
+            r = requests.get(page,headers=headers)
+            soup = BeautifulSoup(r.content, 'html.parser')
 
-        for post in posts:
-            scrape_text(post)
+            posts = soup.select('.board .thread .postContainer')
 
-            print("finished thread")
+            for post in posts:
+                scrape_text(post)
 
-    overall_sentiment /= count
+                print("finished thread")
 
-    with open('board_a.json', 'w') as f:
-        json.dump(data, f)
+        overall_sentiment /= count
 
-    data.clear()
+        with open('boards.json', 'w') as f:
+            json.dump(data, f)
 
-    d = dict()
-    d['board'] = board
-    d['date'] = datetime.datetime.now()
-    d['overall_sentiment'] = overall_sentiment
-    data.append(d)
+        data.clear()
 
-    with open('overall_sentiment.json', 'w') as f:
-        json.dump(data, f)
+        d = dict()
+        d['board'] = board.text.strip()
+        d['date'] = datetime.datetime.now()
+        d['overall_sentiment'] = overall_sentiment
+        data.append(d)
+
+        with open('overall_sentiment.json', 'w') as f:
+            json.dump(data, f)
 
 main()
