@@ -1,4 +1,5 @@
 # 4chan-Sentiment-Alignment
+[DEPRECATED]
 
 Webscrape and analysis in Python using Requests, BeautifulSoup, Pandas, Matplotlibs, and Google Cloud's Natural Language API
 
